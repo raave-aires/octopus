@@ -1,0 +1,63 @@
+name: Coletar link do formulário DSC
+
+on:
+  schedule:
+    - cron: "15 0,6,12,18 * * *"
+      timezone: "America/Sao_Paulo"
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: dsc-telegram-collector
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    environment: ".env"
+    timeout-minutes: 10
+    steps:
+      - name: Clonar repositório
+        uses: actions/checkout@v5
+
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Ler mensagens pendentes do Telegram
+        id: collect
+        run: pnpm run collect:link
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_USER_ID: ${{ vars.TELEGRAM_USER_ID }}
+
+      - name: Persistir link válido do formulário
+        id: persist
+        if: steps.collect.outputs.has_link == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.collect.outputs.artifact_name }}
+          path: .state/telegram/form-link.json
+          retention-days: 14
+          if-no-files-found: error
+          include-hidden-files: true
+
+      - name: Confirmar updates e avisar no Telegram
+        if: >-
+          ${{ always() && steps.collect.outcome == 'success' &&
+              (steps.collect.outputs.has_link != 'true' || steps.persist.outcome == 'success') }}
+        run: pnpm run telegram:finalize
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_USER_ID: ${{ vars.TELEGRAM_USER_ID }}

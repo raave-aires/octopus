@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Fixture Quiz DSC</title>
+    <style>
+      body { font: 16px system-ui; max-width: 800px; margin: 2rem auto; }
+      [role="listitem"] { border: 1px solid #ddd; margin: 1rem 0; padding: 1rem; }
+      [role="radio"], [role="option"], [role="listbox"] { cursor: pointer; padding: .35rem; }
+      [role="radio"][aria-checked="true"], [role="option"][aria-selected="true"] { font-weight: 700; }
+    </style>
+  </head>
+  <body>
+    <main id="app"></main>
+    <script>
+      const app = document.querySelector("#app");
+      let step = 0;
+      const values = {};
+
+      function radio(group, label) {
+        return `<div role="radio" tabindex="0" data-group="${group}" aria-label="${label}" aria-checked="false">${label}</div>`;
+      }
+
+      function listbox(label, options) {
+        return `<div role="listbox" tabindex="0" aria-label="${label}" data-label="${label}">
+          ${["Escolher", ...options].map((option, index) => `<div role="option" data-index="${index}" aria-selected="${index === 0}">${option}</div>`).join("")}
+        </div>`;
+      }
+
+      const quiz = [
+        {
+          prompt: "1. Um cliente diz que a Tarifa Social deveria zerar toda a conta. Qual orientação está correta?",
+          options: [
+            "A) Dizer que qualquer valor cancela o benefício.",
+            "B) Explicar que o desconto pode coexistir com outras cobranças e verificar a conta.",
+            "C) Dizer que só funciona com conta zerada.",
+            "D) Mandar pagar sem verificar."
+          ]
+        },
+        {
+          prompt: "2. Uma família consumiu 105 kWh e os primeiros 80 kWh têm benefício. O que ocorre?",
+          options: [
+            "A) Perde todo o benefício.",
+            "B) O benefício só vale com exatamente 80 kWh.",
+            "C) Os primeiros 80 kWh mantêm o benefício e 25 kWh são excedentes.",
+            "D) Os 105 kWh são cobrados normalmente."
+          ]
+        },
+        {
+          prompt: "3. Cliente no CadÚnico não identifica o benefício. Como agir?",
+          options: [
+            "A) Negar o direito imediatamente.",
+            "B) Prometer conta zerada.",
+            "C) Verificar a unidade e orientar atualização ou vinculação sem prometer concessão.",
+            "D) Abrir nova unidade consumidora."
+          ]
+        }
+      ];
+
+      function nextButton() {
+        return `<button type="button" data-next>Avançar</button>`;
+      }
+
+      function render() {
+        const header = `<h1>QUIZ DSC - DIÁLOGO SEMANAL DO CLIENTE</h1>`;
+        if (step === 0) {
+          app.innerHTML = `${header}
+            <div role="listitem"><h3>CONFIRME O TEMA DO DSC Pergunta obrigatória</h3>${radio("theme", "Tema 38 - TARIFA SOCIAL")}</div>
+            <div role="listitem"><h3>NOME COMPLETO Pergunta obrigatória</h3><input aria-label="NOME COMPLETO Pergunta obrigatória"></div>
+            <div role="listitem"><h3>MATRÍCULA Pergunta obrigatória</h3><input aria-label="MATRÍCULA Pergunta obrigatória"></div>
+            <div role="listitem"><h3>CIDADE ONDE TRABALHA Pergunta obrigatória</h3>${listbox("CIDADE ONDE TRABALHA Pergunta obrigatória", ["PARAGOMINAS", "BELÉM"])}</div>
+            ${nextButton()}`;
+        } else if (step === 1) {
+          app.innerHTML = `${header}<h2>EMPRESA</h2><div role="listitem"><h3>PRÓPRIO OU PARCEIRA? Pergunta obrigatória</h3>${radio("employment", "PRÓPRIO EQUATORIAL")}${radio("employment", "PARCEIRA")}</div>${nextButton()}`;
+        } else if (step === 2) {
+          app.innerHTML = `${header}<h2>FORNECEDOR</h2><div role="listitem"><h3>EMPRESA Pergunta obrigatória</h3>${listbox("EMPRESA Pergunta obrigatória", ["OUTRA EMPRESA", "ELINSA ELETROTÉCNICA INDUSTRIAL E NAVAL DO BRASIL LTDA"])}</div>${nextButton()}`;
+        } else if (step === 3) {
+          app.innerHTML = `${header}<h2>REGIONAL</h2><div role="listitem"><h3>QUAL REGIONAL? Pergunta obrigatória</h3>${listbox("QUAL REGIONAL? Pergunta obrigatória", ["NORTE", "NORDESTE", "SUL"])}</div>${nextButton()}`;
+        } else if (step === 4) {
+          app.innerHTML = `${header}<h2>NORDESTE</h2><div role="listitem"><h3>GERENTE EQUATORIAL - NORDESTE Pergunta obrigatória</h3>${listbox("GERENTE EQUATORIAL - NORDESTE Pergunta obrigatória", ["JANILSON SAMPAIO DE OLIVEIRA", "OUTRO GERENTE"])}</div>${nextButton()}`;
+        } else if (step === 5) {
+          app.innerHTML = `${header}<h2>FRENTE DE ATUAÇÃO</h2><div role="listitem"><h3>Qual frente você atua? Pergunta obrigatória</h3>${radio("work", "Administrativo (Escritório) – apoio, análise e suporte aos processos")}${radio("work", "Atendimento (Agência)")}</div>${nextButton()}`;
+        } else {
+          app.innerHTML = `${header}<h2>QUIZ</h2>${quiz.map((question, questionIndex) => `<div role="listitem"><h3>${question.prompt} Pergunta obrigatória</h3>${question.options.map((option) => radio(`quiz-${questionIndex}`, option)).join("")}</div>`).join("")}<button type="button" data-submit>Enviar</button>`;
+        }
+        wire();
+      }
+
+      function wire() {
+        document.querySelectorAll('[role="radio"]').forEach((element) => {
+          element.addEventListener("click", () => {
+            document.querySelectorAll(`[role="radio"][data-group="${element.dataset.group}"]`).forEach((radio) => radio.setAttribute("aria-checked", "false"));
+            element.setAttribute("aria-checked", "true");
+          });
+        });
+        document.querySelectorAll('[role="listbox"]').forEach((list) => {
+          let activeIndex = 0;
+          const options = [...list.querySelectorAll('[role="option"]')];
+          const select = (index) => {
+            activeIndex = Math.max(0, Math.min(index, options.length - 1));
+            options.forEach((option, optionIndex) => option.setAttribute("aria-selected", String(optionIndex === activeIndex)));
+            values[list.dataset.label] = options[activeIndex].textContent;
+          };
+          options.forEach((option, index) => option.addEventListener("click", () => select(index)));
+          list.addEventListener("keydown", (event) => {
+            if (event.key === "Home") select(0);
+            if (event.key === "ArrowDown") select(activeIndex + 1);
+            if (event.key === "Enter") select(activeIndex);
+          });
+        });
+        document.querySelector("[data-next]")?.addEventListener("click", () => { step += 1; render(); });
+        document.querySelector("[data-submit]")?.addEventListener("click", () => {
+          if (!window.NO_CONFIRMATION) {
+            app.innerHTML = `<h1>QUIZ DSC</h1><p>Sua resposta foi registrada.</p><button type="button" data-score>Ver pontuação</button>`;
+            document.querySelector("[data-score]").addEventListener("click", () => {
+              if (window.NO_SCORE) return;
+              const scoreHtml = `<h1>QUIZ DSC</h1><p>${window.SCORE_WORDING || "Total de pontos"} <strong>10/10</strong></p>`;
+              if (window.SCORE_IN_NEW_TAB) {
+                const tab = window.open("", "_blank");
+                tab.document.write(scoreHtml);
+                tab.document.close();
+                return;
+              }
+              app.innerHTML = scoreHtml;
+            });
+          }
+        });
+      }
+
+      render();
+    </script>
+  </body>
+</html>

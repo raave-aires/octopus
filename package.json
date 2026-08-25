@@ -1,0 +1,33 @@
+{
+  "name": "octopus-dsc-automation",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Automação semanal do Quiz DSC com Telegram, Gemini e Playwright.",
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/unit/**/*.test.ts",
+    "test:e2e": "tsx --test tests/e2e/**/*.test.ts",
+    "test:all": "pnpm run typecheck && pnpm test && pnpm run test:e2e",
+    "collect:link": "tsx src/cli/collect-link.ts",
+    "telegram:identify": "tsx src/cli/identify-telegram.ts",
+    "telegram:finalize": "tsx src/cli/finalize-telegram.ts",
+    "telegram:notify": "tsx src/cli/notify-telegram.ts",
+    "state:locate": "tsx src/cli/locate-state.ts",
+    "submit": "tsx src/cli/submit-weekly.ts"
+  },
+  "dependencies": {
+    "@google/genai": "2.17.1",
+    "dotenv": "17.4.2",
+    "playwright": "1.62.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.3",
+    "tsx": "4.23.12",
+    "typescript": "7.0.2"
+  }
+}

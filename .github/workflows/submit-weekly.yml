@@ -1,0 +1,150 @@
+name: Enviar o Quiz DSC semanal
+
+on:
+  schedule:
+    - cron: "0 9 * * 2"
+      timezone: "America/Sao_Paulo"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preencher e parar antes de Enviar"
+        required: true
+        default: true
+        type: boolean
+      ignore_duplicate:
+        description: "Reenviar mesmo que a semana já tenha marcador"
+        required: false
+        default: false
+        type: boolean
+      form_url:
+        description: "URL opcional para teste ou recuperação"
+        required: false
+        type: string
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: dsc-weekly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  submit:
+    runs-on: ubuntu-latest
+    environment: ".env"
+    timeout-minutes: 20
+    env:
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true && 'true' || 'false' }}
+      IGNORE_DUPLICATE: ${{ github.event_name == 'workflow_dispatch' && inputs.ignore_duplicate == true && 'true' || 'false' }}
+      FORM_URL_OVERRIDE: ${{ inputs.form_url }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_USER_ID: ${{ vars.TELEGRAM_USER_ID }}
+    steps:
+      - name: Clonar repositório
+        uses: actions/checkout@v5
+
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Instalar dependências
+        run: pnpm install --frozen-lockfile
+
+      - name: Localizar o estado da semana e o link mais recente
+        id: state
+        run: pnpm run state:locate
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Avisar bloqueio por duplicata
+        if: steps.state.outputs.blocked == 'true'
+        continue-on-error: true
+        run: pnpm run telegram:notify
+        env:
+          TELEGRAM_MESSAGE: >-
+            ℹ️ O Quiz DSC da semana ${{ steps.state.outputs.week_key }} não foi reenviado:
+            já existe um marcador ${{ steps.state.outputs.blocked_by }}.
+
+      - name: Avisar link do formulário ausente
+        if: steps.state.outputs.source == 'missing'
+        continue-on-error: true
+        run: pnpm run telegram:notify
+        env:
+          TELEGRAM_MESSAGE: >-
+            ❌ Nenhum link recente do Quiz DSC foi encontrado para a semana
+            ${{ steps.state.outputs.week_key }}. Envie o Google Form ao bot e execute novamente.
+
+      - name: Baixar o link mais recente do formulário
+        if: steps.state.outputs.source == 'artifact'
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ steps.state.outputs.artifact_id }}
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.state.outputs.run_id }}
+          path: .state/link
+
+      - name: Cachear o Chromium headless shell
+        if: steps.state.outputs.source == 'artifact' || steps.state.outputs.source == 'override'
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Instalar o Chromium
+        if: steps.state.outputs.source == 'artifact' || steps.state.outputs.source == 'override'
+        run: pnpm exec playwright install --only-shell chromium
+
+      - name: Preencher e enviar o formulário
+        id: automation
+        if: steps.state.outputs.source == 'artifact' || steps.state.outputs.source == 'override'
+        run: pnpm run submit
+        env:
+          WEEK_KEY: ${{ steps.state.outputs.week_key }}
+          FORM_LINK_PATH: .state/link/form-link.json
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+          GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+          DSC_PROFILE_JSON: ${{ secrets.DSC_PROFILE_JSON }}
+
+      - name: Enviar as evidências da execução
+        if: always() && steps.automation.outputs.status != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.automation.outputs.evidence_name }}
+          path: output/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Persistir o marcador da semana
+        if: >-
+          steps.automation.outputs.status == 'success' ||
+          steps.automation.outputs.status == 'unknown'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.automation.outputs.marker_name }}
+          path: output/state.json
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Avisar o resultado da automação
+        if: always() && steps.automation.outputs.status != ''
+        continue-on-error: true
+        run: pnpm run telegram:notify
+        env:
+          TELEGRAM_MESSAGE_FILE: output/notification.txt
+
+      - name: Falhar execução sem link
+        if: steps.state.outputs.source == 'missing'
+        run: exit 1
+
+      - name: Falhar automação malsucedida
+        if: >-
+          steps.automation.outputs.status == 'failure' ||
+          steps.automation.outputs.status == 'unknown'
+        run: exit 1

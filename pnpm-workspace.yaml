@@ -1,0 +1,10 @@
+# Configuração do pnpm. As settings moram aqui, não no campo "pnpm" do
+# package.json, que o pnpm 11 ignora (https://pnpm.io/settings).
+
+# Quais dependências podem rodar scripts de install.
+# esbuild precisa do postinstall para posicionar o binário usado pelo tsx.
+# Os outros dois são no-ops para runtime e ficam bloqueados de propósito.
+allowBuilds:
+  esbuild: true
+  "@google/genai": false
+  protobufjs: false
