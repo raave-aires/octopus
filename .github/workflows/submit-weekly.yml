@@ -32,7 +32,7 @@ concurrency:
 jobs:
   submit:
     runs-on: ubuntu-latest
-    environment: ".env"
+    environment: "electric"
     timeout-minutes: 20
     env:
       DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run == true && 'true' || 'false' }}
