@@ -40,7 +40,7 @@ jobs:
         run: pnpm run collect:link
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_USER_ID: ${{ vars.TELEGRAM_USER_ID }}
+          TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
 
       - name: Persistir link válido do formulário
         id: persist
@@ -60,4 +60,4 @@ jobs:
         run: pnpm run telegram:finalize
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_USER_ID: ${{ vars.TELEGRAM_USER_ID }}
+          TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}

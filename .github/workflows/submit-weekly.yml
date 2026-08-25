@@ -39,7 +39,7 @@ jobs:
       IGNORE_DUPLICATE: ${{ github.event_name == 'workflow_dispatch' && inputs.ignore_duplicate == true && 'true' || 'false' }}
       FORM_URL_OVERRIDE: ${{ inputs.form_url }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-      TELEGRAM_USER_ID: ${{ vars.TELEGRAM_USER_ID }}
+      TELEGRAM_USER_ID: ${{ secrets.TELEGRAM_USER_ID }}
     steps:
       - name: Clonar repositório
         uses: actions/checkout@v5
