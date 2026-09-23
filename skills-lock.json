@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "github-actions-efficiency": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/github-actions-efficiency/SKILL.md",
+      "computedHash": "92628da7f3eb2ae5625168f31587712a3cd77ac9ba5a23ffc24e86fd12c4408c"
+    }
+  }
+}
