@@ -20,7 +20,7 @@ import type {
 
 const REQUIRED_SUFFIX = /\s*Pergunta obrigatória\s*$/iu;
 const CONFIRMATION_PATTERN =
-  /(Sua resposta foi registrada|Resposta registrada|Your response has been recorded)/iu;
+  /(Sua resposta foi registrada|Resposta registrada|Participa[cç][aã]o registrada|Your response has been recorded)/iu;
 const SCORE_TRIGGER_PATTERN = /(Ver pontua[cç][aã]o|View score)/iu;
 const SCORE_PATTERN =
   /(?:Total\s+de\s+pontos|Total\s+points?|Pontua[cç][aã]o\s+total)\s*:?\s*(\d+(?:[.,]\d+)?)\s*\/\s*(\d+(?:[.,]\d+)?)/iu;

@@ -111,7 +111,7 @@
         document.querySelector("[data-next]")?.addEventListener("click", () => { step += 1; render(); });
         document.querySelector("[data-submit]")?.addEventListener("click", () => {
           if (!window.NO_CONFIRMATION) {
-            app.innerHTML = `<h1>QUIZ DSC</h1><p>Sua resposta foi registrada.</p><button type="button" data-score>Ver pontuação</button>`;
+            app.innerHTML = `<h1>QUIZ DSC</h1><p>${window.CONFIRMATION_WORDING || "Sua resposta foi registrada."}</p><button type="button" data-score>Ver pontuação</button>`;
             document.querySelector("[data-score]").addEventListener("click", () => {
               if (window.NO_SCORE) return;
               const scoreHtml = `<h1>QUIZ DSC</h1><p>${window.SCORE_WORDING || "Total de pontos"} <strong>10/10</strong></p>`;

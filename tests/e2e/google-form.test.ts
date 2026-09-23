@@ -174,6 +174,28 @@ test("aceita 'Pontuação total' como redação alternativa", async () => {
   await context.close();
 });
 
+test("aceita 'Participação registrada' como redação alternativa da confirmação", async () => {
+  const context = await browser.newContext();
+  await context.addInitScript(() => {
+    (window as Window & { CONFIRMATION_WORDING?: string }).CONFIRMATION_WORDING =
+      "Participação registrada. Obrigado por participar do DSC – Diálogo Semanal do Cliente!";
+  });
+  const page = await context.newPage();
+  const screenshotDirectory = await mkdtemp(join(tmpdir(), "dsc-confirmacao-"));
+  const result = await runGoogleForm({
+    page,
+    url: fixtureUrl,
+    profile,
+    dryRun: false,
+    weekKey: "2026-W33",
+    screenshotDirectory,
+    solve: logicalSolver,
+  });
+
+  assert.equal(result.record.status, "success");
+  await context.close();
+});
+
 test("preserva o sucesso quando a confirmação aparece, mas a nota não pode ser lida", async () => {
   const context = await browser.newContext();
   await context.addInitScript(() => {
