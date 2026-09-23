@@ -354,7 +354,7 @@ export async function runGoogleForm(options: {
   const region = await selectCustomListbox(page, /QUAL REGIONAL/iu, profile.region);
   await advanceTo(page, region);
 
-  await selectCustomListbox(page, /GERENTE EQUATORIAL/iu, profile.manager);
+  await selectCustomListbox(page, /GERÊNCIA EQUATORIAL - NORDESTE/iu, profile.manager);
   await advanceTo(page, "FRENTE DE ATUAÇÃO");
 
   await clickRadioByName(page, profile.workArea);
