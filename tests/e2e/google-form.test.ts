@@ -20,7 +20,7 @@ const profile: ProfileConfig = {
   employmentType: "PARCEIRA",
   supplier: "ELINSA ELETROTÉCNICA INDUSTRIAL E NAVAL DO BRASIL LTDA",
   region: "NORDESTE",
-  manager: "JANILSON SAMPAIO DE OLIVEIRA",
+  manager: "GSTC NORDESTE",
   workArea: "Administrativo (Escritório) – apoio, análise e suporte aos processos",
 };
 
@@ -75,7 +75,7 @@ test("resolve opções mesmo com caixa, acento e espaço diferentes do perfil", 
       city: "Paragominas",
       supplier: "Elinsa  Eletrotecnica Industrial e Naval do Brasil Ltda",
       region: "nordeste",
-      manager: "Janilson Sampaio de Oliveira",
+      manager: "Gstc Nordeste",
       employmentType: "Parceira",
     },
     dryRun: false,

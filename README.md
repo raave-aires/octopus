@@ -83,7 +83,7 @@ O valor é conferido mais tarde, na [primeira validação](#6-primeira-validaç�
 `DSC_PROFILE_JSON` são os dados que se repetem toda semana no formulário. Ele precisa seguir este contrato, em uma única linha:
 
 ```json
-{"fullName":"NOME","employeeId":"MATRICULA","city":"CIDADE","employmentType":"TIPO","supplier":"FORNECEDOR","region":"REGIONAL","manager":"GERENTE","workArea":"FRENTE"}
+{"fullName":"NOME","employeeId":"MATRICULA","city":"CIDADE","employmentType":"TIPO","supplier":"FORNECEDOR","region":"REGIONAL","manager":"GERÊNCIA","workArea":"FRENTE"}
 ```
 
 As oito chaves são obrigatórias e nenhuma pode ficar vazia. Os valores precisam corresponder exatamente ao texto que o Google Forms exibe, inclusive acentos.
